@@ -1,7 +1,10 @@
+using System;
 using UnityEngine;
 
 public class TaxiController : MonoBehaviour
 {
+    private SpriteRenderer _sprite;
+    
     [Header("Taxi Controls")]
     [SerializeField] private float _acceleration = 30;
     [SerializeField] private float _deceleration = 5;
@@ -13,7 +16,12 @@ public class TaxiController : MonoBehaviour
     [Header("Collision")] 
     [SerializeField] private Bounds _characterBounds;
     [SerializeField] private LayerMask _groundLayer;
-    
+
+    private void Start()
+    {
+        _sprite = GetComponent<SpriteRenderer>();
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -26,14 +34,21 @@ public class TaxiController : MonoBehaviour
         _inputHorizontal = Input.GetAxisRaw("Horizontal");
         if (Mathf.Abs(_inputHorizontal) > 0.05f)
         {
+            _sprite.color = Color.green;
             _speedHorizontal += _inputHorizontal * _acceleration * Time.deltaTime;
             _speedHorizontal = Mathf.Clamp(_speedHorizontal, -_maxSpeed, _maxSpeed);    
         }
         else
         {
+            _sprite.color = Color.yellow;
             _speedHorizontal = Mathf.MoveTowards(_speedHorizontal, 0, _deceleration * Time.deltaTime);
         }
-        
+
+        if (Mathf.Abs(_speedHorizontal) <= 0.05f)
+        {
+            _sprite.color = Color.white;
+        }
+
         
         _inputVertical = Input.GetAxisRaw("Vertical");
     }
