@@ -34,28 +34,47 @@ public class TaxiController : MonoBehaviour
         _inputHorizontal = Input.GetAxisRaw("Horizontal");
         if (Mathf.Abs(_inputHorizontal) > 0.05f)
         {
-            _sprite.color = Color.green;
+            // _sprite.color = Color.green;
             _speedHorizontal += _inputHorizontal * _acceleration * Time.deltaTime;
-            _speedHorizontal = Mathf.Clamp(_speedHorizontal, -_maxSpeed, _maxSpeed);    
+            _speedHorizontal = Mathf.Clamp(_speedHorizontal, -_maxSpeed, _maxSpeed);  
+            transform.localScale = new Vector3(_inputHorizontal / Mathf.Abs(_inputHorizontal), 1f, 1f);
+
         }
-        else
+        else           
         {
-            _sprite.color = Color.yellow;
+            // _sprite.color = Color.yellow;
             _speedHorizontal = Mathf.MoveTowards(_speedHorizontal, 0, _deceleration * Time.deltaTime);
         }
 
         if (Mathf.Abs(_speedHorizontal) <= 0.05f)
         {
-            _sprite.color = Color.white;
+            // _sprite.color = Color.white;
+        }
+        
+        _inputVertical = Input.GetAxisRaw("Vertical");
+        if (Mathf.Abs(_inputVertical) > 0.05f)
+        {
+            // _sprite.color = Color.green;
+            _speedVertical += _inputVertical * _acceleration * Time.deltaTime;
+            _speedVertical = Mathf.Clamp(_speedVertical, -_maxSpeed, _maxSpeed);    
+        }
+        else           
+        {
+            // _sprite.color = Color.yellow;
+            _speedVertical = Mathf.MoveTowards(_speedVertical, 0, _deceleration * Time.deltaTime);
+        }
+
+        if (Mathf.Abs(_speedVertical) <= 0.05f)
+        {
+            // _sprite.color = Color.white;
         }
 
         
-        _inputVertical = Input.GetAxisRaw("Vertical");
     }
 
     private void Move() {
         var pos = transform.position;
-        var move = new Vector3(_speedHorizontal, _inputVertical) * Time.deltaTime;
+        var move = new Vector3(_speedHorizontal, _speedVertical) * Time.deltaTime;
         var furthestPoint = pos + move;
 
         // check furthest movement. If nothing hit, move and don't do extra checks
