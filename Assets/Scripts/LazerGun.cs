@@ -16,27 +16,33 @@ public class LazerGun : MonoBehaviour
 
     private void GetTarget()
     {
+        // Set to zero by default so we dont shoot unless we press a key.
         _lazerTarget = Vector3.zero;
         if (Input.GetKey(KeyCode.Space))
         {
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right, lazerdistance, LayerMask);
+            // Take ship orientation into account
+            Vector2 direction = Vector2.right * gameObject.transform.parent.transform.localScale.x;
+            
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, lazerdistance, LayerMask);
             if (hit.collider != null)
             {
-                _lazerTarget = hit.point - (Vector2) transform.position;
+                _lazerTarget = (hit.point) - (Vector2) transform.position;
             }
             else
             {
-                _lazerTarget = Vector3.right * lazerdistance;
-
+                _lazerTarget = direction * lazerdistance;
             }
-            
-            Debug.DrawRay(transform.position, Vector3.right*lazerdistance, Color.green);
+
+            // Debug
+            Debug.DrawRay(transform.position, direction*lazerdistance, Color.green);
         }
     }
     
     private void ShootLazer()
     {
-        _line.SetPosition(1, _lazerTarget);
+        // Line position is relative to the line origin and so should always be positive.
+        Vector3 linePosition = _lazerTarget * _lazerTarget.normalized.x;
+        _line.SetPosition(1, linePosition);
     }
     
 }
