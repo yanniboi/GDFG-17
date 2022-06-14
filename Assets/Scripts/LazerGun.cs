@@ -1,7 +1,10 @@
+using System;
 using UnityEngine;
 
 public class LazerGun : MonoBehaviour
 {
+    public static event Action<Vector3> OnHitTile;
+    
     public LineRenderer _line;
     public float lazerdistance;
     public LayerMask LayerMask;
@@ -27,6 +30,11 @@ public class LazerGun : MonoBehaviour
             if (hit.collider != null)
             {
                 _lazerTarget = (hit.point) - (Vector2) transform.position;
+                
+                Vector3 tilePosition = Vector3.zero;
+                tilePosition.x = hit.point.x + 0.01f * direction.x;
+                tilePosition.y = hit.point.y + 0.01f * direction.y;
+                OnHitTile?.Invoke(tilePosition);
             }
             else
             {
