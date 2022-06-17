@@ -87,3 +87,5 @@ steam_build_output/*
 *.sh
 *.kra*
 *.xcf*
+ProceduralGeneration/ProceduralGeneration/bin/*
+ProceduralGeneration/ProceduralGeneration/obj/*
