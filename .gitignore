@@ -87,5 +87,9 @@ steam_build_output/*
 *.sh
 *.kra*
 *.xcf*
-ProceduralGeneration/ProceduralGeneration/bin/*
-ProceduralGeneration/ProceduralGeneration/obj/*
+
+# ProceduralGeneration
+ProceduralGeneration/*/bin/*
+ProceduralGeneration/*/obj/*
+!ProceduralGeneration/*/*.csproj*
+!ProceduralGeneration/*.sln*

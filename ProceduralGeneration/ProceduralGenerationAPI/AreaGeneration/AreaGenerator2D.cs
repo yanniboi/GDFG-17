@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace AreaGeneration
 {
-    class AreaGenerator2D
+    public class AreaGenerator2D
     {
         public int Seed { get; set; }
         public int Width { get; private set; }
