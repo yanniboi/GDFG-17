@@ -8,18 +8,14 @@ namespace AreaGeneration
 {
     public class AreaGenerator2D
     {
-        public int Seed { get; set; }
-        public int Width { get; private set; }
-        public int Height { get; private set; }
-
         GradientNoise Noise { get; set; }
         Random Random { get; set; }
 
-        public AreaGenerator2D(int seed, int width, int height)
+        public int Seed { get; private set; }
+
+        public AreaGenerator2D(int seed)
         {
             this.Seed = seed;
-            this.Width = width;
-            this.Height = height;
         }
 
         public int[,] Generate(AreaConfig config)
@@ -95,21 +91,17 @@ namespace AreaGeneration
             public int AreaTilesX { get; private set; }
             public int AreaTilesY { get; private set; }
 
-            public int Seed { get; private set; }
-
             public TileRule[] TileRules { get; private set; }
             public AreaRule[] AreaRules { get; private set; }
 
 
-            public AreaConfig(int width, int height, int areaTilesX, int areaTilesY, int seed)
+            public AreaConfig(int width, int height, int areaTilesX, int areaTilesY)
             {
                 this.Width = width;
                 this.Height = height;
 
                 this.AreaTilesX = areaTilesX;
                 this.AreaTilesY = areaTilesY;
-
-                this.Seed = seed;
             }
 
             public AreaConfig Set(params TileRule[] tileRules)

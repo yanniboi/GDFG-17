@@ -33,11 +33,11 @@ namespace ProcCGen
 
             while (true)
             {
-                AreaGenerator2D generator = new AreaGenerator2D(42, 5, 3);
+                AreaGenerator2D generator = new AreaGenerator2D(seed);
 
                 int width = 5, height = 5, tilesX = 50, tilesY = 30;
 
-                AreaGenerator2D.AreaConfig config = new AreaGenerator2D.AreaConfig(5, 5, 50, 30, seed)
+                AreaGenerator2D.AreaConfig config = new AreaGenerator2D.AreaConfig(5, 5, 50, 30)
                     .Set(
                     new AreaGenerator2D.TileRule(-10, .2f, .5f, 0),
                     new AreaGenerator2D.TileRule(.1f, 10f, .5f, 1))

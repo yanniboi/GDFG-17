@@ -26,6 +26,10 @@ public class TaxiController : MonoBehaviour
     [SerializeField] private float _detectionRayLength = 0.1f;
     [SerializeField] [Range(0.1f, 0.3f)] private float _rayBuffer = 0.1f; // Prevents side detectors hitting the ground
 
+    [SerializeField] private ParticleSystem particleSystemOnCollision;
+    public ParticleSystem ParticleSystemOnCollision { get { return particleSystemOnCollision; } }
+
+
     private RayRange _raysUp, _raysRight, _raysDown, _raysLeft;
     private bool _colUp, _colRight, _colDown, _colLeft;
 
@@ -42,6 +46,7 @@ public class TaxiController : MonoBehaviour
     {
         GetInput();
         CheckCollision();
+        UpdateVisuals();
         Move();
     }
 
@@ -174,7 +179,12 @@ public class TaxiController : MonoBehaviour
         }
     }
 
-   
+    private void UpdateVisuals()
+    {
+        if (this._colDown || this._colLeft || this._colRight || this._colUp)
+            this.ParticleSystemOnCollision.Play();
+    }
+
     private void OnDrawGizmos() {
         // Bounds
         Gizmos.color = Color.yellow;
