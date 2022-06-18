@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class TaxiController : MonoBehaviour
 {
+    public static event Action OnPickup, OnDropoff;
+    
     private SpriteRenderer _sprite;
     
     [Header("Taxi Controls")]
@@ -26,6 +28,9 @@ public class TaxiController : MonoBehaviour
 
     private RayRange _raysUp, _raysRight, _raysDown, _raysLeft;
     private bool _colUp, _colRight, _colDown, _colLeft;
+
+    [Header("Passenger")] 
+    private bool _hasPassenger;
     
     private void Start()
     {
@@ -169,12 +174,7 @@ public class TaxiController : MonoBehaviour
         }
     }
 
-    // private void OnDrawGizmos() {
-    //     // Bounds
-    //     Gizmos.color = Color.yellow;
-    //     Gizmos.DrawWireCube(transform.position + _characterBounds.center, _characterBounds.size);
-    // }
-    
+   
     private void OnDrawGizmos() {
         // Bounds
         Gizmos.color = Color.yellow;
@@ -209,4 +209,20 @@ public class TaxiController : MonoBehaviour
         public readonly Vector2 Start, End, Dir;
     }
     
+    public bool HasPassenger()
+    {
+        return _hasPassenger;
+    }
+
+    public void Pickup()
+    {
+        _hasPassenger = true;
+        OnPickup?.Invoke();
+    }
+
+    public void Dropoff()
+    {
+        _hasPassenger = false;
+        OnDropoff?.Invoke();
+    }
 }
