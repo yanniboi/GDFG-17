@@ -44,6 +44,11 @@ public class TaxiController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (GameManager.Instance.IsPaused())
+        {
+            return;
+        }
+        
         GetInput();
         CheckCollision();
         UpdateVisuals();
@@ -234,5 +239,6 @@ public class TaxiController : MonoBehaviour
     {
         _hasPassenger = false;
         OnDropoff?.Invoke();
+        GameManager.Instance.WinGame();
     }
 }
