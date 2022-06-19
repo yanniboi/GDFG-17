@@ -8,6 +8,9 @@ namespace AreaGeneration
 {
     public class AreaGenerator2D
     {
+        public static event Action<int> OnGenerationStart;
+        public static event Action<int> OnGenerationProgress;
+        
         GradientNoise Noise { get; set; }
         Random Random { get; set; }
 
@@ -20,6 +23,10 @@ namespace AreaGeneration
 
         public int[,] Generate(AreaConfig config)
         {
+            int numberOfStates = 7;
+            int generationProgress = 0;
+            OnGenerationStart?.Invoke(numberOfStates);
+
             this.Noise = new GradientNoise(this.Seed);
             this.Random = new Random(this.Seed * 1337);
 
@@ -43,6 +50,10 @@ namespace AreaGeneration
                     values[x, y] = this.Noise.Get(new NoiseConfig(5, 12, 1), fX, fY);
                 }
             }
+
+            generationProgress++;
+            OnGenerationProgress?.Invoke(generationProgress);
+
 
             int[,] states = new int[tileCountX, tileCountY];
 
@@ -74,10 +85,14 @@ namespace AreaGeneration
                     }
                 }
             }
+            generationProgress++;
+            OnGenerationProgress?.Invoke(generationProgress);
 
             foreach (var areaRule in config.AreaRules)
             {
                 areaRule.Apply(this.Random, values, states);
+                generationProgress++;
+                OnGenerationProgress?.Invoke(generationProgress);
             }
 
             return states;
