@@ -102,12 +102,12 @@ image: $IMAGE:$UNITY_VERSION-base-$IMAGE_VERSION
 #  image: $IMAGE:$UNITY_VERSION-mac-mono-$IMAGE_VERSION
 #  variables:
 #    BUILD_TARGET: StandaloneOSX
-#
-#build-StandaloneWindows64:
-#  <<: *build
-#  image: $IMAGE:$UNITY_VERSION-windows-mono-$IMAGE_VERSION
-#  variables:
-#    BUILD_TARGET: StandaloneWindows64
+
+build-StandaloneWindows64:
+  <<: *build
+  image: $IMAGE:$UNITY_VERSION-windows-mono-$IMAGE_VERSION
+  variables:
+    BUILD_TARGET: StandaloneWindows64
 
 # For webgl support, you need to set Compression Format to Disabled for v0.9. See https://github.com/game-ci/docker/issues/75
 build-WebGL:
@@ -164,12 +164,12 @@ deploy-itch:
   <<: *deploy
   image: benjymous/docker-itch-butler
 #  needs: [ "build-WebGL", "build-StandaloneLinux64", "build-StandaloneOSX", "build-StandaloneWindows64" ]
-  needs: [ "build-WebGL" ]
+  needs: [ "build-WebGL", "build-StandaloneWindows64" ]
   script:
     - butler push $UNITY_DIR/Builds/WebGL $ITCHIO_NAME:web-stable
+    - butler push $UNITY_DIR/Builds/StandaloneWindows64 $ITCHIO_NAME:windows-stable
 #    - butler push $UNITY_DIR/Builds/StandaloneLinux64 $ITCHIO_NAME:linux-stable
 #    - butler push $UNITY_DIR/Builds/StandaloneOSX $ITCHIO_NAME:macosx-stable
-#    - butler push $UNITY_DIR/Builds/StandaloneWindows64 $ITCHIO_NAME:windows-stable
 
 #deploy-android:
 #  <<: *deploy
