@@ -6,6 +6,6 @@ public class StartScreen : MonoBehaviour
 {
     public void PressButton()
     {
-        LoadingManager.LoadScene("SampleScene", "cheese");
+        LoadingManager.LoadScene("LevelGeneration", "cheese");
     }
 }

@@ -632,6 +632,7 @@ GameObject:
   - component: {fileID: 1571683988}
   - component: {fileID: 1571683987}
   - component: {fileID: 1571683989}
+  - component: {fileID: 1571683990}
   m_Layer: 5
   m_Name: Panel
   m_TagString: Untagged
@@ -713,6 +714,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ProgressBar: {fileID: 41157817}
+  LoadingText: {fileID: 1430961405}
+  TextTime: 2
+--- !u!114 &1571683990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1571683985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d19c0c954f58f93238337c8c374c47b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  width: 4
+  height: 4
+  areaTilesX: 50
+  areaTilesY: 30
 --- !u!1 &2011971360
 GameObject:
   m_ObjectHideFlags: 0

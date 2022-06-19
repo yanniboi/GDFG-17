@@ -138,6 +138,7 @@ GameObject:
   m_Component:
   - component: {fileID: 611031403}
   - component: {fileID: 611031402}
+  - component: {fileID: 611031404}
   m_Layer: 0
   m_Name: LevelGeneration
   m_TagString: Untagged
@@ -157,14 +158,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d19c0c954f58f93238337c8c374c47b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tilemap: {fileID: 3924090025393319807}
-  _tile: {fileID: 11400000, guid: 3d5db691f22abc297b535276f5e894c1, type: 2}
-  _shadowCaster: {fileID: 0}
-  width: 8
-  height: 8
+  width: 4
+  height: 4
   areaTilesX: 50
   areaTilesY: 30
-  seed: HalloYanniboi2
 --- !u!4 &611031403
 Transform:
   m_ObjectHideFlags: 0
@@ -180,6 +177,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &611031404
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 611031401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c7196bafd94000a8619b49f33b564d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _tilemap: {fileID: 3924090025393319807}
+  _tile: {fileID: 11400000, guid: 3d5db691f22abc297b535276f5e894c1, type: 2}
+  _shadowCaster: {fileID: 0}
 --- !u!1 &898978281
 GameObject:
   m_ObjectHideFlags: 0

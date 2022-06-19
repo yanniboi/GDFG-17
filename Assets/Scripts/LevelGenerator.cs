@@ -1,18 +1,12 @@
-using AreaGeneration;
-using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
+using AreaGeneration;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class LevelGenerator : MonoBehaviour
 {
-    [SerializeField] private Tilemap _tilemap;
-    [SerializeField] private TileBase _tile;
-    [SerializeField] private ShadowCaster2DTileMap _shadowCaster;
-
-
     [SerializeField] private int width = 3;
     public int Width { get { return width; } }
 
@@ -27,33 +21,27 @@ public class LevelGenerator : MonoBehaviour
     public int AreaTilesY { get { return areaTilesY; } }
 
 
-    [SerializeField] private string seed;
-    public string Seed { get { return seed; } }
+    private string _seed;
 
-
-
-
-    LoadingState State { get; set; }
+    public LoadingState State { get; set; }
 
     AreaGenerator2D AreaGenerator2D { get; set; }
-
-    private void Start()
-    {
-        Generate();
-    }
 
     private void Update()
     {
         if (this.State?.IsDone == true)
         {
             this.FinishGenerate();
-            this.State = null;
+            
+            // @Fresch why is this important?
+            // this.State = null;
         }
     }
 
-    private void Generate()
+    public void Generate(string seed)
     {
-        this.AreaGenerator2D = new AreaGenerator2D(this.Seed.GetHashCode());
+        _seed = seed;
+        this.AreaGenerator2D = new AreaGenerator2D(_seed.GetHashCode());
 
         Thread generator = new Thread(this.DoGenerate);
         generator.Name = "Generator";
@@ -70,20 +58,11 @@ public class LevelGenerator : MonoBehaviour
 
     private void FinishGenerate()
     {
-        Debug.Log($"Now placing {this.State.Tiles.Count} tiles...");
-
-        foreach (Vector3 position in this.State.Tiles)
-        {
-            this.PlaceTile(position);
-        }
-
-    }
-
-    private IEnumerator UpdateShadows()
-    {
-        yield return null;
-        _shadowCaster.DestroyAllChildren();
-        _shadowCaster.Generate();
+        LevelTiles tiles = new LevelTiles();
+        tiles.tiles = State.Tiles;
+        string data = JsonUtility.ToJson(tiles);
+        LevelStorage.CheckStoragePath();
+        File.WriteAllText(LevelStorage.LevelStorageCurrentLevel, data);
     }
 
     private void GenerateTiles()
@@ -121,17 +100,7 @@ public class LevelGenerator : MonoBehaviour
         this.State.IsDone = true;
     }
 
-    private void PlaceTile(Vector3 position)
-    {
-        _tilemap.SetTile(_tilemap.WorldToCell(position), _tile);
-    }
-    
-    private void RemoveTile(Vector3 position)
-    {
-        _tilemap.SetTile(_tilemap.WorldToCell(position), null);
-    }
-
-    class LoadingState
+    public class LoadingState
     {
         public List<Vector3> Tiles { get; set; }
         public bool IsDone { get; set; }
