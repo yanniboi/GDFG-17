@@ -53,7 +53,6 @@ public class LoadingManager : MonoBehaviour
         while (!state.IsDone)
         {
             this._progress = (0f + state.ProgressCurrent) / state.ProgressMax * .5f;
-            Debug.Log(this._progress);
 
             yield return null;
         }
