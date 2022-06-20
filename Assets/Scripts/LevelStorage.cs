@@ -21,7 +21,34 @@ public class LevelStorage
 }
 
 [Serializable]
-public class LevelTiles
+public class LevelData
+{
+    public List<LevelChunk> chunks = new List<LevelChunk>();
+    public List<LevelChunk> Chunks
+    {
+        get { return chunks; }
+        set { chunks = value; }
+    }
+}
+
+[Serializable]
+public class LevelChunk
 {
     public List<Vector3> tiles = new List<Vector3>();
+    public List<Vector3> Tiles
+    {
+        get { return tiles; }
+        set { tiles = value; }
+    }
+
+
+    public LevelChunk(List<Vector3> tiles)
+    {
+        this.Tiles = tiles;
+    }
+    public LevelChunk()
+    {
+
+    }
+
 }
