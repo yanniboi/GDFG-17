@@ -1,6 +1,6 @@
-﻿using Misc;
+﻿using AreaGeneration;
+using Misc;
 using Noise;
-using AreaGeneration;
 using System;
 using System.Drawing;
 

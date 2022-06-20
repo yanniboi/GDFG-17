@@ -8,13 +8,16 @@ namespace AreaGeneration
 {
     public class AreaGenerator2D
     {
-        public static event Action<int> OnGenerationStart;
-        public static event Action<int> OnGenerationProgress;
-        
+        public Action<int> OnGenerationStart { get; set; }
+        public Action<int> OnGenerationProgress { get; set; }
+
         GradientNoise Noise { get; set; }
         Random Random { get; set; }
 
         public int Seed { get; private set; }
+
+        int Progress { get; set; }
+        int ProgressMax { get; set; }
 
         public AreaGenerator2D(int seed)
         {
@@ -23,9 +26,10 @@ namespace AreaGeneration
 
         public int[,] Generate(AreaConfig config)
         {
-            int numberOfStates = 7;
-            int generationProgress = 0;
-            OnGenerationStart?.Invoke(numberOfStates);
+            this.ProgressMax = config.AreaRules.Length + 2; // Area Rules + ApplyTileRules + GetNoise
+            this.Progress = 0;
+
+            OnGenerationStart?.Invoke(this.ProgressMax);
 
             this.Noise = new GradientNoise(this.Seed);
             this.Random = new Random(this.Seed * 1337);
@@ -40,23 +44,40 @@ namespace AreaGeneration
 
             float[,] values = new float[tileCountX, tileCountY];
 
-            for (int y = 0; y < tileCountY; y++)
-            {
-                for (int x = 0; x < tileCountX; x++)
-                {
-                    float fX = noiseStartX + (x * scale);
-                    float fY = noiseStartY + (y * scale);
+            // Get Noise
+            this.GetNoiseValues(tileCountX, tileCountY, scale, noiseStartX, noiseStartY, values);
 
-                    values[x, y] = this.Noise.Get(new NoiseConfig(5, 12, 1), fX, fY);
-                }
-            }
-
-            generationProgress++;
-            OnGenerationProgress?.Invoke(generationProgress);
+            this.Progress++;
+            this.UpdateProgress();
 
 
             int[,] states = new int[tileCountX, tileCountY];
 
+            // Apply Tile Rules
+            this.ApplyTileRules(config, tileCountX, tileCountY, values, states);
+
+            this.Progress++;
+            this.UpdateProgress();
+
+            // Apply Area Rules
+            this.ApplyAreaRules(config, values, states);
+
+            return states;
+        }
+
+        private void ApplyAreaRules(AreaConfig config, float[,] values, int[,] states)
+        {
+            foreach (var areaRule in config.AreaRules)
+            {
+                areaRule.Apply(this.Random, values, states);
+
+                this.Progress++;
+                this.UpdateProgress();
+            }
+        }
+
+        private void ApplyTileRules(AreaConfig config, int tileCountX, int tileCountY, float[,] values, int[,] states)
+        {
             for (int y = 0; y < tileCountY; y++)
             {
                 for (int x = 0; x < tileCountX; x++)
@@ -85,18 +106,27 @@ namespace AreaGeneration
                     }
                 }
             }
-            generationProgress++;
-            OnGenerationProgress?.Invoke(generationProgress);
-
-            foreach (var areaRule in config.AreaRules)
-            {
-                areaRule.Apply(this.Random, values, states);
-                generationProgress++;
-                OnGenerationProgress?.Invoke(generationProgress);
-            }
-
-            return states;
         }
+
+        private void GetNoiseValues(int tileCountX, int tileCountY, float scale, float noiseStartX, float noiseStartY, float[,] values)
+        {
+            for (int y = 0; y < tileCountY; y++)
+            {
+                for (int x = 0; x < tileCountX; x++)
+                {
+                    float fX = noiseStartX + (x * scale);
+                    float fY = noiseStartY + (y * scale);
+
+                    values[x, y] = this.Noise.Get(new NoiseConfig(5, 12, 1), fX, fY);
+                }
+            }
+        }
+
+        private void UpdateProgress()
+        {
+            OnGenerationProgress?.Invoke(this.Progress);
+        }
+
 
         public class AreaConfig
         {
@@ -389,7 +419,7 @@ namespace AreaGeneration
                         states[this.BorderStart + i, height - 1 - this.BorderStart - b] = this.State;
                     }
                 }
-                
+
             }
         }
 
@@ -464,9 +494,9 @@ namespace AreaGeneration
                 int dX = b.X - a.X;
                 int dY = b.Y - a.Y;
 
-                int dx1 = dX < 0 ? -1 : dX > 0 ? 1 : 0, 
-                    dy1 = dY < 0 ? -1 : dY > 0 ? 1 : 0, 
-                    dx2 = dX < 0 ? -1 : dX > 0 ? 1 : 0, 
+                int dx1 = dX < 0 ? -1 : dX > 0 ? 1 : 0,
+                    dy1 = dY < 0 ? -1 : dY > 0 ? 1 : 0,
+                    dx2 = dX < 0 ? -1 : dX > 0 ? 1 : 0,
                     dy2 = 0;
 
                 int max = Math.Abs(dX);

@@ -8,101 +8,101 @@ using UnityEngine;
 
 namespace InfiniteRunner
 {
-  public class Parallax : MonoBehaviour
-  {
-    public float ParallaxSpeed;
-    public PossibleDirections ParallaxDirection;
-    protected GameObject _clone;
-    protected Vector3 _movement;
-    protected Vector3 _initialPosition;
-    protected Vector3 _newPosition;
-    protected Vector3 _direction;
-    protected float _width;
-
-    protected virtual void Start()
+    public class Parallax : MonoBehaviour
     {
-      var bounds = GetComponent<Collider2D>().bounds; 
-      if (ParallaxDirection == PossibleDirections.Left || ParallaxDirection == PossibleDirections.Right)
-      {
-        _width = bounds.size.x;
-        _newPosition = new Vector3(transform.position.x + _width, transform.position.y, transform.position.z);
-      }
-      if (ParallaxDirection == PossibleDirections.Up || ParallaxDirection == PossibleDirections.Down)
-      {
-        _width = bounds.size.y;
-        _newPosition = new Vector3(transform.position.x, transform.position.y + _width, transform.position.z);
-      }
-      if (ParallaxDirection == PossibleDirections.Forwards || ParallaxDirection == PossibleDirections.Backwards)
-      {
-        _width = bounds.size.z;
-        _newPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z + _width);
-      }
-      switch (ParallaxDirection)
-      {
-        case PossibleDirections.Left:
-          _direction = Vector3.left;
-          break;
-        case PossibleDirections.Right:
-          _direction = Vector3.right;
-          break;
-        case PossibleDirections.Up:
-          _direction = Vector3.up;
-          break;
-        case PossibleDirections.Down:
-          _direction = Vector3.down;
-          break;
-        case PossibleDirections.Forwards:
-          _direction = Vector3.forward;
-          break;
-        case PossibleDirections.Backwards:
-          _direction = Vector3.back;
-          break;
-      }
-      _initialPosition = transform.position;
-      _clone = Instantiate(gameObject, _newPosition, transform.rotation);
-      Destroy(_clone.GetComponent<Parallax>());
-    }
+        public float ParallaxSpeed;
+        public PossibleDirections ParallaxDirection;
+        protected GameObject _clone;
+        protected Vector3 _movement;
+        protected Vector3 _initialPosition;
+        protected Vector3 _newPosition;
+        protected Vector3 _direction;
+        protected float _width;
 
-    protected virtual void Update()
-    {
-      _movement = _direction * (ParallaxSpeed / 10f) * Time.deltaTime;
-      _clone.transform.Translate(_movement);
-      transform.Translate(_movement);
-      if (!ShouldResetPosition())
-        return;
-      transform.Translate(-_direction * _width);
-      _clone.transform.Translate(-_direction * _width);
-    }
+        protected virtual void Start()
+        {
+            var bounds = this.GetComponent<Collider2D>().bounds;
+            if (this.ParallaxDirection == PossibleDirections.Left || this.ParallaxDirection == PossibleDirections.Right)
+            {
+                this._width = bounds.size.x;
+                this._newPosition = new Vector3(this.transform.position.x + this._width, this.transform.position.y, this.transform.position.z);
+            }
+            if (this.ParallaxDirection == PossibleDirections.Up || this.ParallaxDirection == PossibleDirections.Down)
+            {
+                this._width = bounds.size.y;
+                this._newPosition = new Vector3(this.transform.position.x, this.transform.position.y + this._width, this.transform.position.z);
+            }
+            if (this.ParallaxDirection == PossibleDirections.Forwards || this.ParallaxDirection == PossibleDirections.Backwards)
+            {
+                this._width = bounds.size.z;
+                this._newPosition = new Vector3(this.transform.position.x, this.transform.position.y, this.transform.position.z + this._width);
+            }
+            switch (this.ParallaxDirection)
+            {
+                case PossibleDirections.Left:
+                    this._direction = Vector3.left;
+                    break;
+                case PossibleDirections.Right:
+                    this._direction = Vector3.right;
+                    break;
+                case PossibleDirections.Up:
+                    this._direction = Vector3.up;
+                    break;
+                case PossibleDirections.Down:
+                    this._direction = Vector3.down;
+                    break;
+                case PossibleDirections.Forwards:
+                    this._direction = Vector3.forward;
+                    break;
+                case PossibleDirections.Backwards:
+                    this._direction = Vector3.back;
+                    break;
+            }
+            this._initialPosition = this.transform.position;
+            this._clone = Instantiate(this.gameObject, this._newPosition, this.transform.rotation);
+            Destroy(this._clone.GetComponent<Parallax>());
+        }
 
-    protected virtual bool ShouldResetPosition()
-    {
-      switch (ParallaxDirection)
-      {
-        case PossibleDirections.Left:
-          return transform.position.x + (double) _width < _initialPosition.x;
-        case PossibleDirections.Right:
-          return transform.position.x - (double) _width > _initialPosition.x;
-        case PossibleDirections.Up:
-          return transform.position.y - (double) _width > _initialPosition.y;
-        case PossibleDirections.Down:
-          return transform.position.y + (double) _width < _initialPosition.y;
-        case PossibleDirections.Forwards:
-          return transform.position.z - (double) _width > _initialPosition.z;
-        case PossibleDirections.Backwards:
-          return transform.position.z + (double) _width < _initialPosition.z;
-        default:
-          return false;
-      }
-    }
+        protected virtual void Update()
+        {
+            this._movement = this._direction * (this.ParallaxSpeed / 10f) * Time.deltaTime;
+            this._clone.transform.Translate(this._movement);
+            this.transform.Translate(this._movement);
+            if (!this.ShouldResetPosition())
+                return;
+            this.transform.Translate(-this._direction * this._width);
+            this._clone.transform.Translate(-this._direction * this._width);
+        }
 
-    public enum PossibleDirections
-    {
-      Left,
-      Right,
-      Up,
-      Down,
-      Forwards,
-      Backwards,
+        protected virtual bool ShouldResetPosition()
+        {
+            switch (this.ParallaxDirection)
+            {
+                case PossibleDirections.Left:
+                    return this.transform.position.x + (double)this._width < this._initialPosition.x;
+                case PossibleDirections.Right:
+                    return this.transform.position.x - (double)this._width > this._initialPosition.x;
+                case PossibleDirections.Up:
+                    return this.transform.position.y - (double)this._width > this._initialPosition.y;
+                case PossibleDirections.Down:
+                    return this.transform.position.y + (double)this._width < this._initialPosition.y;
+                case PossibleDirections.Forwards:
+                    return this.transform.position.z - (double)this._width > this._initialPosition.z;
+                case PossibleDirections.Backwards:
+                    return this.transform.position.z + (double)this._width < this._initialPosition.z;
+                default:
+                    return false;
+            }
+        }
+
+        public enum PossibleDirections
+        {
+            Left,
+            Right,
+            Up,
+            Down,
+            Forwards,
+            Backwards,
+        }
     }
-  }
 }

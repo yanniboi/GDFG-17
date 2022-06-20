@@ -1,5 +1,4 @@
 ﻿using Misc;
-using ProcCGen;
 using System;
 
 namespace Noise
@@ -94,14 +93,14 @@ namespace Noise
         {
             int inputLength = input.Length;
 
-            this.PrepareInput(input, inputLength, 
+            this.PrepareInput(input, inputLength,
                 out int[] intInput, out int[] hashTabelIndices);
 
-            this.PrepareCornerValues(inputLength, hashTabelIndices, 
+            this.PrepareCornerValues(inputLength, hashTabelIndices,
                 out int cornerCount, out int[] cornerIndices);
 
-            this.GetCornerValues(input, inputLength, intInput, cornerCount, cornerIndices, 
-                out float[] cornerValues, out float[]  smoothSteps);
+            this.GetCornerValues(input, inputLength, intInput, cornerCount, cornerIndices,
+                out float[] cornerValues, out float[] smoothSteps);
 
             int iteration = 0;
 

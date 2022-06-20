@@ -1,27 +1,29 @@
+using AreaGeneration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using AreaGeneration;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 public class LevelGenerator : MonoBehaviour
 {
+    public Action<float> OnProgress { get; set; }
+
     [SerializeField] private int width = 3;
-    public int Width { get { return width; } }
+    public int Width { get { return this.width; } }
 
     [SerializeField] private int height = 3;
-    public int Height { get { return height; } }
+    public int Height { get { return this.height; } }
 
 
     [SerializeField] private int areaTilesX = 30;
-    public int AreaTilesX { get { return areaTilesX; } }
+    public int AreaTilesX { get { return this.areaTilesX; } }
 
     [SerializeField] private int areaTilesY = 30;
-    public int AreaTilesY { get { return areaTilesY; } }
+    public int AreaTilesY { get { return this.areaTilesY; } }
 
 
-    private string _seed;
+    private string Seed { get; set; }
 
     public LoadingState State { get; set; }
 
@@ -32,16 +34,22 @@ public class LevelGenerator : MonoBehaviour
         if (this.State?.IsDone == true)
         {
             this.FinishGenerate();
-            
-            // @Fresch why is this important?
-            // this.State = null;
+            this.State = null; // Prevents that the level is built again and again and again and again
         }
     }
 
     public void Generate(string seed)
     {
-        _seed = seed;
-        this.AreaGenerator2D = new AreaGenerator2D(_seed.GetHashCode());
+        if (this.State != null)
+            return;
+
+        this.Seed = seed;
+        this.AreaGenerator2D = new AreaGenerator2D(this.Seed.GetHashCode());
+
+        this.AreaGenerator2D.OnGenerationStart += this.AreaGenerator2D_OnGenerationStart;
+        this.AreaGenerator2D.OnGenerationProgress += this.AreaGenerator2D_OnGenerationProgress;
+
+        this.State = new LoadingState();
 
         Thread generator = new Thread(this.DoGenerate);
         generator.Name = "Generator";
@@ -51,18 +59,11 @@ public class LevelGenerator : MonoBehaviour
 
     private void DoGenerate()
     {
-        this.State = new LoadingState();
-
         this.GenerateTiles();
-    }
 
-    private void FinishGenerate()
-    {
-        LevelTiles tiles = new LevelTiles();
-        tiles.tiles = State.Tiles;
-        string data = JsonUtility.ToJson(tiles);
-        LevelStorage.CheckStoragePath();
-        File.WriteAllText(LevelStorage.LevelStorageCurrentLevel, data);
+        // Unsubscribe
+        this.AreaGenerator2D.OnGenerationStart -= this.AreaGenerator2D_OnGenerationStart;
+        this.AreaGenerator2D.OnGenerationProgress -= this.AreaGenerator2D_OnGenerationProgress;
     }
 
     private void GenerateTiles()
@@ -100,9 +101,48 @@ public class LevelGenerator : MonoBehaviour
         this.State.IsDone = true;
     }
 
+    private void FinishGenerate()
+    {
+        LevelTiles tiles = new LevelTiles();
+
+        tiles.tiles = this.State.Tiles;
+
+        string data = JsonUtility.ToJson(tiles);
+
+        LevelStorage.CheckStoragePath();
+
+        File.WriteAllText(LevelStorage.LevelStorageCurrentLevel, data);
+    }
+
+    #region Event Methods
+    private void AreaGenerator2D_OnGenerationStart(int progressMax)
+    {
+        this.State?.SetProgressMax(progressMax);
+    }
+
+    private void AreaGenerator2D_OnGenerationProgress(int progress)
+    {
+        this.State?.SetProgress(progress);
+    }
+    #endregion
+
+
     public class LoadingState
     {
         public List<Vector3> Tiles { get; set; }
         public bool IsDone { get; set; }
+
+        public int ProgressMax { get; private set; }
+        public int ProgressCurrent { get; private set; }
+
+        public void SetProgressMax(int value)
+        {
+            this.ProgressMax = value;
+        }
+
+        public void SetProgress(int value)
+        {
+            this.ProgressCurrent = value;
+        }
     }
 }

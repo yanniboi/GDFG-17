@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Dropoff : MonoBehaviour
@@ -8,7 +6,7 @@ public class Dropoff : MonoBehaviour
     {
         Debug.Log("enter collider");
         Debug.Log(col);
-  
+
         if (col.TryGetComponent(out TaxiController taxi))
         {
             if (taxi.HasPassenger())

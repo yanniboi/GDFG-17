@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Yanniboi.Library
 {
-  public class SingletonBase<T> : MonoBehaviour	where T : Component
+    public class SingletonBase<T> : MonoBehaviour where T : Component
     {
         protected static T _instance;
         protected bool _enabled;
@@ -13,18 +13,18 @@ namespace Yanniboi.Library
             {
                 if (_instance == null)
                 {
-                    _instance = FindObjectOfType<T> ();
+                    _instance = FindObjectOfType<T>();
                     if (_instance == null)
                     {
-                        GameObject obj = new GameObject ();
-                        _instance = obj.AddComponent<T> ();
+                        GameObject obj = new GameObject();
+                        _instance = obj.AddComponent<T>();
                     }
                 }
                 return _instance;
             }
         }
 
-        protected virtual void Awake ()
+        protected virtual void Awake()
         {
             if (!Application.isPlaying)
             {
@@ -34,8 +34,8 @@ namespace Yanniboi.Library
             if (_instance == null)
             {
                 _instance = this as T;
-                DontDestroyOnLoad (transform.gameObject);
-                _enabled = true;
+                DontDestroyOnLoad(this.transform.gameObject);
+                this._enabled = true;
             }
             else
             {

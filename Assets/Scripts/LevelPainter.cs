@@ -15,21 +15,21 @@ public class LevelPainter : MonoBehaviour
 
     private void Start()
     {
-        FetchTiles();
-        PaintTiles();
+        this.FetchTiles();
+        this.PaintTiles();
     }
 
     private void FetchTiles()
     {
         string data = File.ReadAllText(LevelStorage.LevelStorageCurrentLevel);
-        _tiles = JsonUtility.FromJson<LevelTiles>(data).tiles;
+        this._tiles = JsonUtility.FromJson<LevelTiles>(data).tiles;
     }
 
     private void PaintTiles()
     {
-        foreach (Vector3 position in _tiles)
+        foreach (Vector3 position in this._tiles)
         {
-            PlaceTile(position);
+            this.PlaceTile(position);
         }
 
     }
@@ -37,17 +37,17 @@ public class LevelPainter : MonoBehaviour
     private IEnumerator UpdateShadows()
     {
         yield return null;
-        _shadowCaster.DestroyAllChildren();
-        _shadowCaster.Generate();
+        this._shadowCaster.DestroyAllChildren();
+        this._shadowCaster.Generate();
     }
-    
+
     private void PlaceTile(Vector3 position)
     {
-        _tilemap.SetTile(_tilemap.WorldToCell(position), _tile);
+        this._tilemap.SetTile(this._tilemap.WorldToCell(position), this._tile);
     }
-    
+
     private void RemoveTile(Vector3 position)
     {
-        _tilemap.SetTile(_tilemap.WorldToCell(position), null);
+        this._tilemap.SetTile(this._tilemap.WorldToCell(position), null);
     }
 }

@@ -11,7 +11,7 @@ public class LoadingManager : MonoBehaviour
     [SerializeField] private TMP_Text LoadingText;
 
     public float TextTime = 2;
-    
+
     private LevelGenerator _levelGenerator;
 
     private float _progress = 0;
@@ -31,61 +31,71 @@ public class LoadingManager : MonoBehaviour
 
     private void Awake()
     {
-        _levelGenerator = GetComponent<LevelGenerator>();
+        this._levelGenerator = this.GetComponent<LevelGenerator>();
     }
 
     private void Start()
     {
         if (!string.IsNullOrEmpty(_sceneToLoad))
         {
-            StartCoroutine(nameof(BuildLevelFromSeed));
+            this.StartCoroutine(nameof(BuildLevelFromSeed));
         }
-        
-        LoadingText.text = _loadingTexts[Random.Range(0, _loadingTexts.Count)];
+
+        this.LoadingText.text = this._loadingTexts[Random.Range(0, this._loadingTexts.Count)];
     }
 
     private IEnumerator BuildLevelFromSeed()
     {
-        _levelGenerator.Generate(_seed);
+        this._levelGenerator.Generate(_seed);
 
-        while (_levelGenerator.State == null || !_levelGenerator.State.IsDone)
+        var state = this._levelGenerator.State;
+
+        while (!state.IsDone)
         {
+            this._progress = (0f + state.ProgressCurrent) / state.ProgressMax * .5f;
+            Debug.Log(this._progress);
+
             yield return null;
         }
 
-        _progress = 0.5f;
+        this._progress = 0.5f;
 
-        _asyncOperation = SceneManager.LoadSceneAsync(_sceneToLoad, LoadSceneMode.Single);
-        _asyncOperation.allowSceneActivation = false;
+        this._asyncOperation = SceneManager.LoadSceneAsync(_sceneToLoad, LoadSceneMode.Single);
+        this._asyncOperation.allowSceneActivation = false;
 
         // while the scene loads, we assign its progress to a target that we'll use to fill the progress bar smoothly
-        while (_asyncOperation.progress < 0.9f)
+        while (this._asyncOperation.progress < 0.9f)
         {
-            _progress = 0.5f + _asyncOperation.progress / 2;
+            this._progress = 0.5f + this._asyncOperation.progress / 2;
             yield return null;
         }
 
-        _progress = 1;
+        this._progress = 1;
 
-        _asyncOperation.allowSceneActivation = true;
+        this._asyncOperation.allowSceneActivation = true;
+    }
+
+    private void LevelGeneratorOnProgress(float progress)
+    {
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        ProgressBar.fillAmount = _progress;
-        _timer = _timer += Time.deltaTime;
+        this.ProgressBar.fillAmount = this._progress;
+        this._timer = this._timer += Time.deltaTime;
 
-        if (_timer > TextTime)
+        if (this._timer > this.TextTime)
         {
-            _timer = 0;
-            LoadingText.text = _loadingTexts[Random.Range(0, _loadingTexts.Count)];
+            this._timer = 0;
+            this.LoadingText.text = this._loadingTexts[Random.Range(0, this._loadingTexts.Count)];
         }
     }
 
     private void Finish()
     {
-        _progress = 1;
+        this._progress = 1;
     }
 
     private void OnEnable()

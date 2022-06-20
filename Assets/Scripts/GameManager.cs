@@ -9,22 +9,22 @@ public class GameManager : SingletonBase<GameManager>
     private bool _isPaused = false;
     private bool _gameOver = false;
 
-    
+
     private void Update()
     {
-        if (_gameOver)
+        if (this._gameOver)
         {
             return;
         }
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (IsPaused())
+            if (this.IsPaused())
             {
-                UnPause();
+                this.UnPause();
             }
             else
             {
-                Pause();
+                this.Pause();
             }
             GuiManager.Instance.ToggleMenu();
         }
@@ -32,25 +32,25 @@ public class GameManager : SingletonBase<GameManager>
 
     public bool IsPaused()
     {
-        return _isPaused;
+        return this._isPaused;
     }
 
     public void Pause()
     {
-        _isPaused = true;
+        this._isPaused = true;
         Time.timeScale = 0;
     }
 
     public void UnPause()
     {
-        _isPaused = false;
+        this._isPaused = false;
         Time.timeScale = 1;
     }
-    
+
     public void WinGame()
     {
-        Pause();
-        _gameOver = true;
+        this.Pause();
+        this._gameOver = true;
         OnWin?.Invoke();
     }
 }

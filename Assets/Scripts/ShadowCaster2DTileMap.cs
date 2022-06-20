@@ -22,16 +22,16 @@ public class ShadowCaster2DTileMap : MonoBehaviour
                                     .GetMethod("GenerateShadowMesh", BindingFlags.Public | BindingFlags.Static);
     public void Generate()
     {
-        DestroyAllChildren();
+        this.DestroyAllChildren();
 
-        tilemapCollider = GetComponent<CompositeCollider2D>();
+        this.tilemapCollider = this.GetComponent<CompositeCollider2D>();
 
-        for (int i = 0; i < tilemapCollider.pathCount; i++)
+        for (int i = 0; i < this.tilemapCollider.pathCount; i++)
         {
-            Vector2[] pathVertices = new Vector2[tilemapCollider.GetPathPointCount(i)];
-            tilemapCollider.GetPath(i, pathVertices);
+            Vector2[] pathVertices = new Vector2[this.tilemapCollider.GetPathPointCount(i)];
+            this.tilemapCollider.GetPath(i, pathVertices);
             GameObject shadowCaster = new GameObject("shadow_caster_" + i);
-            shadowCaster.transform.parent = gameObject.transform;
+            shadowCaster.transform.parent = this.gameObject.transform;
             ShadowCaster2D shadowCasterComponent = shadowCaster.AddComponent<ShadowCaster2D>();
             shadowCasterComponent.selfShadows = this.selfShadows;
 
@@ -52,7 +52,7 @@ public class ShadowCaster2DTileMap : MonoBehaviour
     public void DestroyAllChildren()
     {
 
-        var tempList = transform.Cast<Transform>().ToList();
+        var tempList = this.transform.Cast<Transform>().ToList();
         foreach (var child in tempList)
         {
             DestroyImmediate(child.gameObject);

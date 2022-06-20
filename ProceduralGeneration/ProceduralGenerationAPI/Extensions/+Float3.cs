@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Misc
+﻿namespace Misc
 {
     public static partial class Extension
     {
