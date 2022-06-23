@@ -35,7 +35,7 @@ namespace ProcCGen
             {
                 AreaGenerator2D generator = new AreaGenerator2D(seed);
 
-                int width = 5, height = 3, tilesX = 50, tilesY = 30;
+                int width = 4, height = 3, tilesX = 50, tilesY = 30;
 
                 AreaGenerator2D.AreaConfig config = new AreaGenerator2D.AreaConfig(width, height, tilesX, tilesY, 1, 0)
                     .Set(

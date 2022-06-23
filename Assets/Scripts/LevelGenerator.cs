@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
+using static AreaGeneration.AreaGenerator2D;
 
 public class LevelGenerator : MonoBehaviour
 {
@@ -27,6 +28,7 @@ public class LevelGenerator : MonoBehaviour
     private string Seed { get; set; }
 
     public LoadingState State { get; set; }
+    AreaConfig FinalConfig { get; set; }
 
     AreaGenerator2D AreaGenerator2D { get; set; }
 
@@ -69,9 +71,7 @@ public class LevelGenerator : MonoBehaviour
 
     private void GenerateTiles()
     {
-        
-
-        AreaGenerator2D.AreaConfig config = new AreaGenerator2D.AreaConfig(this.Width, this.Height, this.AreaTilesX, this.AreaTilesY, 1, 0)
+        this.FinalConfig = new AreaGenerator2D.AreaConfig(this.Width, this.Height, this.AreaTilesX, this.AreaTilesY, 2, 0)
                     .Set(
                     new AreaGenerator2D.TileRule(-10, .2f, .5f, 0),
                     new AreaGenerator2D.TileRule(.1f, 10f, .5f, 1))
@@ -84,10 +84,10 @@ public class LevelGenerator : MonoBehaviour
                     new AreaGenerator2D.AreaConnector() // Make Sure... everything is connected
                     );
 
-        this.AreaGenerator2D.Generate(config, out int[,][,] chunkValues, out int[,] stateValues);
+        this.AreaGenerator2D.Generate(this.FinalConfig, out int[,][,] chunkValues, out int[,] stateValues);
 
-        List <Vector3> tiles = new List<Vector3>();
         List<Vector3[]> chunks = new List<Vector3[]>();
+        List<int[,]> chunkStates = new List<int[,]>();
 
         for (int cY = 0; cY < this.Height; cY++)
         {
@@ -109,17 +109,17 @@ public class LevelGenerator : MonoBehaviour
                                 Debug.Log("???!!?!");
                             }
 
-                            tiles.Add(new Vector3(fX, fY));
                             chunkTiles.Add(new Vector3(fX, fY));
                         }
                     }
                 }
 
+                chunkStates.Add(chunkValues[cX, cY]);
                 chunks.Add(chunkTiles.ToArray());
             }
         }
 
-        this.State.Tiles = tiles;
+        this.State.States = chunkStates.ToArray();
         this.State.Chunks = chunks.ToArray();
         this.State.IsDone = true;
     }
@@ -128,7 +128,35 @@ public class LevelGenerator : MonoBehaviour
     {
         LevelData levelData = new LevelData();
 
-        levelData.Chunks = this.State.Chunks.Select(chunk => new LevelChunk(chunk.ToList())).ToList();
+        List<LevelChunk> chunks = new List<LevelChunk>();
+        for (int i = 0; i < this.State.Chunks.Length; i++)
+        {
+            int width = this.State.States[i].GetLength(0);
+            int height = this.State.States[i].GetLength(1);
+            int[] states = new int[width * height];
+
+            int idx = 0;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    states[idx++] = this.State.States[i][x, y];
+                }
+            }
+
+            //LevelChunk chunk = new LevelChunk(null);
+            LevelChunk chunk = new LevelChunk(this.State.Chunks[i].ToList()); // { States = this.State.States[i] };
+            chunk.States = states;
+
+            chunks.Add(chunk);
+        }
+
+        levelData.Chunks = chunks; /*this.State.Chunks.Select(chunk => new LevelChunk(chunk.ToList())).ToList();*/
+        levelData.AreaTilesX = this.FinalConfig.AreaTilesX;
+        levelData.AreaTilesY = this.FinalConfig.AreaTilesY;
+        levelData.Width = this.FinalConfig.Width;
+        levelData.Height = this.FinalConfig.Height;
 
         string data = JsonUtility.ToJson(levelData);
 
@@ -154,7 +182,7 @@ public class LevelGenerator : MonoBehaviour
 
     public class LoadingState
     {
-        public List<Vector3> Tiles { get; set; }
+        public int[][,] States { get; set; }
         public Vector3[][] Chunks { get; set; }
 
         public bool IsDone { get; set; }

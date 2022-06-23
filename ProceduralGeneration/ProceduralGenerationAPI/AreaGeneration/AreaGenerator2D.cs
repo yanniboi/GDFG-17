@@ -44,7 +44,7 @@ namespace AreaGeneration
             int tileCountX = config.AreaTilesX * config.Width;
             int tileCountY = config.AreaTilesY * config.Height;
 
-            float scale = .1f;
+            float scale = config.Scale;
 
             float noiseStartX = 0,
                 noiseStartY = 0;
@@ -171,6 +171,8 @@ namespace AreaGeneration
 
             public int EmptyStateID { get; private set; }
             public int AreaBorderRadius { get; private set; }
+
+            public float Scale { get; set; } = .025f;
 
 
             public AreaConfig(int width, int height, int areaTilesX, int areaTilesY, int areaBorderSize, int emptyStateID)

@@ -73,8 +73,12 @@ public class DestrucableTiles : MonoBehaviour
     private IEnumerator UpdateShadows()
     {
         yield return null;
-        this._shadowCaster.DestroyAllChildren();
-        this._shadowCaster.Generate();
+
+        if (this._shadowCaster != null)
+        {
+            this._shadowCaster.DestroyAllChildren();
+            this._shadowCaster.Generate();
+        }
     }
 
     private void OnEnable()
