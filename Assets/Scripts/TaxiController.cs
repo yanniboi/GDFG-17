@@ -35,6 +35,7 @@ public class TaxiController : MonoBehaviour
 
     [Header("Passenger")]
     private bool _hasPassenger;
+    [SerializeField] private CapsuleLauncher _launcher;
 
     private void Start()
     {
@@ -145,6 +146,15 @@ public class TaxiController : MonoBehaviour
             this._speedVertical = -this._speedVertical * this._bouncyness;
         }
 
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (this._hasPassenger)
+            {
+                Dropoff();
+                _launcher.Launch();
+            }
+        }
     }
 
 
@@ -250,10 +260,9 @@ public class TaxiController : MonoBehaviour
         OnPickup?.Invoke();
     }
 
-    public void Dropoff()
+    private void Dropoff()
     {
         this._hasPassenger = false;
         OnDropoff?.Invoke();
-        GameManager.Instance.WinGame();
     }
 }

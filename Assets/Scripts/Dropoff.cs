@@ -7,12 +7,9 @@ public class Dropoff : MonoBehaviour
         Debug.Log("enter collider");
         Debug.Log(col);
 
-        if (col.TryGetComponent(out TaxiController taxi))
+        if (col.TryGetComponent(out CapsuleController capsule))
         {
-            if (taxi.HasPassenger())
-            {
-                taxi.Dropoff();
-            }
+            capsule.DropoffComplete();
         }
     }
 }
