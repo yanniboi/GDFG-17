@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 using Yanniboi.Library;
@@ -7,99 +6,99 @@ public class GuiManager : SingletonBase<GuiManager>
 {
     [SerializeField]
     private PassengerGui Passenger;
-    
+
     [SerializeField]
     private Image Shade;
 
     [SerializeField]
     private GameObject WinScreen;
 
-    
+
     private bool _hasPassenger;
 
     private bool _menuIsShowing = false;
-    
+
     private void Start()
     {
-        UpdateGui();
+        this.UpdateGui();
     }
 
     public void ToggleMenu()
     {
-        _menuIsShowing = !_menuIsShowing;
-        UpdateMenu();
+        this._menuIsShowing = !this._menuIsShowing;
+        this.UpdateMenu();
     }
-    
+
     private void UpdateGui()
     {
-        Passenger.SetPassenger(_hasPassenger);
+        this.Passenger.SetPassenger(this._hasPassenger);
     }
 
     private void OnPassengerPickup()
     {
-        _hasPassenger = true;
-        UpdateGui();
+        this._hasPassenger = true;
+        this.UpdateGui();
     }
 
     private void OnPassengerDropoff()
     {
-        _hasPassenger = false;
-        UpdateGui();
+        this._hasPassenger = false;
+        this.UpdateGui();
     }
 
     private void ShowWinScreen()
     {
-        ShowShade();
-        WinScreen.SetActive(true);
+        this.ShowShade();
+        this.WinScreen.SetActive(true);
     }
-    
+
     private void UpdateMenu()
     {
-        if (_menuIsShowing)
+        if (this._menuIsShowing)
         {
-            ShowMenu();
+            this.ShowMenu();
         }
         else
         {
-            HideMenu();
+            this.HideMenu();
         }
     }
 
     private void ShowShade()
     {
-        Color color = Shade.color;
+        Color color = this.Shade.color;
         color.a = 0.9f;
-        Shade.color = color;
+        this.Shade.color = color;
     }
-    
+
     private void HideShade()
     {
-        Color color = Shade.color;
+        Color color = this.Shade.color;
         color.a = 0f;
-        Shade.color = color;
+        this.Shade.color = color;
     }
-    
+
     private void ShowMenu()
     {
-        ShowShade();
+        this.ShowShade();
     }
 
     private void HideMenu()
     {
-        HideShade();
+        this.HideShade();
     }
 
     private void OnEnable()
     {
-        TaxiController.OnPickup += OnPassengerPickup;
-        TaxiController.OnDropoff += OnPassengerDropoff;
-        GameManager.OnWin += ShowWinScreen;
+        TaxiController.OnPickup += this.OnPassengerPickup;
+        TaxiController.OnDropoff += this.OnPassengerDropoff;
+        GameManager.OnWin += this.ShowWinScreen;
     }
 
     private void OnDisable()
     {
-        TaxiController.OnPickup -= OnPassengerPickup;
-        TaxiController.OnDropoff -= OnPassengerDropoff;
-        GameManager.OnWin -= ShowWinScreen;
+        TaxiController.OnPickup -= this.OnPassengerPickup;
+        TaxiController.OnDropoff -= this.OnPassengerDropoff;
+        GameManager.OnWin -= this.ShowWinScreen;
     }
 }

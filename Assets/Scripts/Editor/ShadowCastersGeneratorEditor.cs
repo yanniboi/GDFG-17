@@ -1,5 +1,5 @@
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(ShadowCaster2DTileMap))]
 public class ShadowCastersGeneratorEditor : Editor
@@ -7,8 +7,8 @@ public class ShadowCastersGeneratorEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        DrawDefaultInspector();
-        ShadowCaster2DTileMap generator = (ShadowCaster2DTileMap)target;
+        this.DrawDefaultInspector();
+        ShadowCaster2DTileMap generator = (ShadowCaster2DTileMap)this.target;
         EditorGUILayout.Space();
         EditorGUILayout.Space();
         EditorGUILayout.Space();

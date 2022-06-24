@@ -8,44 +8,105 @@ namespace AreaGeneration
 {
     public class AreaGenerator2D
     {
+        public Action<int> OnGenerationStart { get; set; }
+        public Action<int> OnGenerationProgress { get; set; }
+
         GradientNoise Noise { get; set; }
         Random Random { get; set; }
 
         public int Seed { get; private set; }
+
+        int Progress { get; set; }
+        int ProgressMax { get; set; }
 
         public AreaGenerator2D(int seed)
         {
             this.Seed = seed;
         }
 
-        public int[,] Generate(AreaConfig config)
+        public int[,][,] Generate(AreaConfig config)
         {
+            this.Generate(config, out int[,][,] chunks, out _);
+
+            return chunks;
+        }
+
+        public void Generate(AreaConfig config, out int[,][,] chunks, out int[,] states)
+        {
+            this.ProgressMax = config.AreaRules.Length + 3; // Area Rules + ApplyTileRules + GetNoise + Build Areas(chunks)
+            this.Progress = 0;
+
+            OnGenerationStart?.Invoke(this.ProgressMax);
+
             this.Noise = new GradientNoise(this.Seed);
             this.Random = new Random(this.Seed * 1337);
 
             int tileCountX = config.AreaTilesX * config.Width;
             int tileCountY = config.AreaTilesY * config.Height;
 
-            float scale = .1f;
+            float scale = config.Scale;
 
             float noiseStartX = 0,
                 noiseStartY = 0;
 
             float[,] values = new float[tileCountX, tileCountY];
 
-            for (int y = 0; y < tileCountY; y++)
-            {
-                for (int x = 0; x < tileCountX; x++)
-                {
-                    float fX = noiseStartX + (x * scale);
-                    float fY = noiseStartY + (y * scale);
+            // Get Noise
+            this.GetNoiseValues(tileCountX, tileCountY, scale, noiseStartX, noiseStartY, values);
 
-                    values[x, y] = this.Noise.Get(new NoiseConfig(5, 12, 1), fX, fY);
+            this.UpdateProgress(1);
+
+
+            states = new int[tileCountX, tileCountY];
+
+            // Apply Tile Rules
+            this.ApplyTileRules(config, tileCountX, tileCountY, values, states);
+
+            this.UpdateProgress(1);
+
+            // Apply Area Rules
+            this.ApplyAreaRules(config, values, states);
+
+            this.UpdateProgress(1);
+
+            List<Area> areas = AreaGenerator2DHelper.BuildAreas(states, config.AreaBorderRadius, config.EmptyStateID);
+
+            chunks = new int[config.Width, config.Height][,];
+
+            for (int y = 0; y < config.Height; y++)
+            {
+                for (int x = 0; x < config.Width; x++)
+                {
+                    chunks[x, y] = new int[config.AreaTilesX, config.AreaTilesY];
+
+                    for (int tY = 0; tY < config.AreaTilesY; tY++)
+                    {
+                        for (int tX = 0; tX < config.AreaTilesX; tX++)
+                        {
+                            int cX = tX + x * config.AreaTilesX;
+                            int cY = tY + y * config.AreaTilesY;
+
+                            chunks[x, y][tX, tY] = states[cX, cY];
+                        }
+                    }
                 }
             }
 
-            int[,] states = new int[tileCountX, tileCountY];
 
+        }
+
+        private void ApplyAreaRules(AreaConfig config, float[,] values, int[,] states)
+        {
+            foreach (var areaRule in config.AreaRules)
+            {
+                areaRule.Apply(config, this.Random, values, states);
+
+                this.UpdateProgress(1);
+            }
+        }
+
+        private void ApplyTileRules(AreaConfig config, int tileCountX, int tileCountY, float[,] values, int[,] states)
+        {
             for (int y = 0; y < tileCountY; y++)
             {
                 for (int x = 0; x < tileCountX; x++)
@@ -74,14 +135,28 @@ namespace AreaGeneration
                     }
                 }
             }
-
-            foreach (var areaRule in config.AreaRules)
-            {
-                areaRule.Apply(this.Random, values, states);
-            }
-
-            return states;
         }
+
+        private void GetNoiseValues(int tileCountX, int tileCountY, float scale, float noiseStartX, float noiseStartY, float[,] values)
+        {
+            for (int y = 0; y < tileCountY; y++)
+            {
+                for (int x = 0; x < tileCountX; x++)
+                {
+                    float fX = noiseStartX + (x * scale);
+                    float fY = noiseStartY + (y * scale);
+
+                    values[x, y] = this.Noise.Get(new NoiseConfig(5, 12, 1), fX, fY);
+                }
+            }
+        }
+
+        private void UpdateProgress(int change)
+        {
+            this.Progress += change;
+            OnGenerationProgress?.Invoke(this.Progress);
+        }
+
 
         public class AreaConfig
         {
@@ -94,14 +169,22 @@ namespace AreaGeneration
             public TileRule[] TileRules { get; private set; }
             public AreaRule[] AreaRules { get; private set; }
 
+            public int EmptyStateID { get; private set; }
+            public int AreaBorderRadius { get; private set; }
 
-            public AreaConfig(int width, int height, int areaTilesX, int areaTilesY)
+            public float Scale { get; set; } = .025f;
+
+
+            public AreaConfig(int width, int height, int areaTilesX, int areaTilesY, int areaBorderSize, int emptyStateID)
             {
                 this.Width = width;
                 this.Height = height;
 
                 this.AreaTilesX = areaTilesX;
                 this.AreaTilesY = areaTilesY;
+
+                this.EmptyStateID = emptyStateID;
+                this.AreaBorderRadius = areaBorderSize;
             }
 
             public AreaConfig Set(params TileRule[] tileRules)
@@ -141,15 +224,15 @@ namespace AreaGeneration
 
         public abstract class AreaRule
         {
-            public abstract void Apply(Random random, float[,] values, int[,] states);
+            public abstract void Apply(AreaConfig config, Random random, float[,] values, int[,] states);
 
-            protected bool IsValidTile(int[,] states, int x, int y)
-            {
-                if (x < 0 || x >= states.GetLength(0) || y < 0 || y >= states.GetLength(1))
-                    return false;
+            //protected bool IsValidTile(int[,] states, int x, int y)
+            //{
+            //    if (x < 0 || x >= states.GetLength(0) || y < 0 || y >= states.GetLength(1))
+            //        return false;
 
-                return true;
-            }
+            //    return true;
+            //}
         }
 
         public class AreaSpotRemover : AreaRule
@@ -168,7 +251,7 @@ namespace AreaGeneration
             }
 
 
-            public override void Apply(Random random, float[,] values, int[,] states)
+            public override void Apply(AreaConfig config, Random random, float[,] values, int[,] states)
             {
                 int width = values.GetLength(0);
                 int height = values.GetLength(1);
@@ -230,7 +313,7 @@ namespace AreaGeneration
             }
 
 
-            public override void Apply(Random random, float[,] values, int[,] states)
+            public override void Apply(AreaConfig config, Random random, float[,] values, int[,] states)
             {
                 int width = values.GetLength(0);
                 int height = values.GetLength(1);
@@ -271,7 +354,7 @@ namespace AreaGeneration
                                     int fX = tile.X + aX;
                                     int fY = tile.Y + aY;
 
-                                    if (!this.IsValidTile(states, fX, fY))
+                                    if (!AreaGenerator2DHelper.IsValidTile(states, fX, fY))
                                         continue;
 
                                     if (checkedTiles[fX, fY])
@@ -324,7 +407,7 @@ namespace AreaGeneration
             }
 
 
-            public override void Apply(Random random, float[,] values, int[,] states)
+            public override void Apply(AreaConfig config, Random random, float[,] values, int[,] states)
             {
                 int width = values.GetLength(0);
                 int height = values.GetLength(1);
@@ -374,26 +457,15 @@ namespace AreaGeneration
                         states[this.BorderStart + i, height - 1 - this.BorderStart - b] = this.State;
                     }
                 }
-                
+
             }
         }
 
         public class AreaConnector : AreaRule
         {
-            public int PathRadius { get; private set; }
-            public int PathState { get; private set; }
-
-
-            public AreaConnector(int pathRadius, int pathState)
+            public override void Apply(AreaConfig config, Random random, float[,] values, int[,] states)
             {
-                this.PathRadius = pathRadius;
-                this.PathState = pathState;
-            }
-
-
-            public override void Apply(Random random, float[,] values, int[,] states)
-            {
-                List<Area> notConnected = this.BuildAreas(states);
+                List<Area> notConnected = AreaGenerator2DHelper.BuildAreas(states, config.AreaBorderRadius, config.EmptyStateID);
 
                 if (notConnected.Count == 0)
                     return;
@@ -434,14 +506,14 @@ namespace AreaGeneration
                         }
                     }
 
-                    this.CreatePath(states, connectedTile, notConnectedTile);
+                    this.CreatePath(states, connectedTile, notConnectedTile, config.AreaBorderRadius, config.EmptyStateID);
 
                     notConnected.Remove(notConnectedArea);
                     connected.Add(notConnectedArea);
                 }
             }
 
-            void CreatePath(int[,] states, Int2 a, Int2 b)
+            void CreatePath(int[,] states, Int2 a, Int2 b, int radius, int state)
             {
                 int x = a.X;
                 int y = a.Y;
@@ -449,9 +521,9 @@ namespace AreaGeneration
                 int dX = b.X - a.X;
                 int dY = b.Y - a.Y;
 
-                int dx1 = dX < 0 ? -1 : dX > 0 ? 1 : 0, 
-                    dy1 = dY < 0 ? -1 : dY > 0 ? 1 : 0, 
-                    dx2 = dX < 0 ? -1 : dX > 0 ? 1 : 0, 
+                int dx1 = dX < 0 ? -1 : dX > 0 ? 1 : 0,
+                    dy1 = dY < 0 ? -1 : dY > 0 ? 1 : 0,
+                    dx2 = dX < 0 ? -1 : dX > 0 ? 1 : 0,
                     dy2 = 0;
 
                 int max = Math.Abs(dX);
@@ -468,17 +540,17 @@ namespace AreaGeneration
                 int add = max / 2;
                 for (int i = 0; i <= max; i++)
                 {
-                    for (int rX = -this.PathRadius; rX <= this.PathRadius; rX++)
+                    for (int rX = -radius; rX <= radius; rX++)
                     {
-                        for (int rY = -this.PathRadius; rY <= this.PathRadius; rY++)
+                        for (int rY = -radius; rY <= radius; rY++)
                         {
                             int fX = x + rX;
                             int fY = y + rY;
 
-                            if (!this.IsValidTile(states, fX, fY))
+                            if (!AreaGenerator2DHelper.IsValidTile(states, fX, fY))
                                 continue;
 
-                            states[fX, fY] = this.PathState;
+                            states[fX, fY] = state;
                         }
                     }
 
@@ -496,147 +568,79 @@ namespace AreaGeneration
                     }
                 }
             }
+        }
 
-            List<Area> BuildAreas(int[,] states)
+        
+    }
+
+    public static class AreaGenerator2DHelper
+    {
+        public static bool IsValidTile(int[,] states, int x, int y)
+        {
+            if (x < 0 || x >= states.GetLength(0) || y < 0 || y >= states.GetLength(1))
+                return false;
+
+            return true;
+        }
+
+        public static bool RadiusCheck(int[,] states, int stateX, int stateY, int radius, int state)
+        {
+            for (int rX = -radius; rX <= radius; rX++)
             {
-                List<Area> toReturn = new List<Area>();
-
-                Dictionary<Area, List<Int2>> floodFill = new Dictionary<Area, List<Int2>>();
-
-                int width = states.GetLength(0);
-                int height = states.GetLength(1);
-
-                Queue<Int2> toCheckTiles = new Queue<Int2>();
-                List<Int2> activeAreaTiles = new List<Int2>();
-
-                bool[,] checkedTiles = new bool[width, height];
-
-                for (int y = 0; y < height; y++)
+                for (int rY = -radius; rY <= radius; rY++)
                 {
-                    for (int x = 0; x < width; x++)
-                    {
-                        if (checkedTiles[x, y])
-                            continue;
+                    int fX = stateX + rX;
+                    int fY = stateY + rY;
 
-                        if (!this.RadiusCheck(states, x, y))
-                            continue;
+                    if (!IsValidTile(states, fX, fY))
+                        continue;
 
-                        checkedTiles[x, y] = true;
-
-                        if (states[x, y] == this.PathState)
-                        {
-                            toCheckTiles.Enqueue(new Int2(x, y));
-                        }
-
-                        while (toCheckTiles.Count > 0)
-                        {
-                            Int2 tile = toCheckTiles.Dequeue();
-                            checkedTiles[tile.X, tile.Y] = true;
-
-                            activeAreaTiles.Add(tile);
-
-                            for (int aY = -1; aY <= 1; aY++)
-                            {
-                                for (int aX = -1; aX <= 1; aX++)
-                                {
-                                    if (aX == 0 && aY == 0)
-                                        continue;
-
-                                    int fX = tile.X + aX;
-                                    int fY = tile.Y + aY;
-
-                                    if (!this.IsValidTile(states, fX, fY))
-                                    {
-                                        continue;
-                                    }
-
-                                    if (checkedTiles[fX, fY])
-                                        continue;
-
-                                    if (this.RadiusCheck(states, fX, fY))
-                                    {
-                                        toCheckTiles.Enqueue(new Int2(fX, fY));
-                                        checkedTiles[fX, fY] = true;
-                                    }
-                                    else
-                                    {
-                                        // Border Tile...?
-                                    }
-                                }
-                            }
-                        }
-
-                        if (activeAreaTiles.Count > 0)
-                        {
-                            Area area = new Area(activeAreaTiles);
-                            toReturn.Add(area);
-                            floodFill.Add(area, new List<Int2>(area.Tiles));
-
-                            activeAreaTiles = new List<Int2>();
-                            //foreach (var tile in activeTiles)
-                            //{
-                            //    states[tile.X, tile.Y] = this.TargetState;
-                            //}
-
-                            //activeTiles.Clear();
-                            //toCheckTiles.Clear();
-                        }
-                    }
+                    if (states[fX, fY] != state)
+                        return false;
                 }
+            }
 
-                // Flood Fill
-                bool fillSuccess = false;
-                do
+            return true;
+        }
+
+        public static List<Area> BuildAreas(int[,] states, int radius, int state)
+        {
+            List<Area> toReturn = new List<Area>();
+
+            Dictionary<Area, List<Int2>> floodFill = new Dictionary<Area, List<Int2>>();
+
+            int width = states.GetLength(0);
+            int height = states.GetLength(1);
+
+            Queue<Int2> toCheckTiles = new Queue<Int2>();
+            List<Int2> activeAreaTiles = new List<Int2>();
+
+            bool[,] checkedTiles = new bool[width, height];
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
                 {
-                    fillSuccess = false;
-                    foreach (var area in floodFill)
+                    if (checkedTiles[x, y])
+                        continue;
+
+                    if (!AreaGenerator2DHelper.RadiusCheck(states, x, y, radius, state))
+                        continue;
+
+                    checkedTiles[x, y] = true;
+
+                    if (states[x, y] == state)
                     {
-                        List<Int2> add = new List<Int2>();
-
-                        fillSuccess |= fillSuccess || area.Value.Count > 0;
-
-                        foreach (var tile in area.Value)
-                        {
-                            for (int aY = -1; aY <= 1; aY++)
-                            {
-                                for (int aX = -1; aX <= 1; aX++)
-                                {
-                                    if (aX == 0 && aY == 0)
-                                        continue;
-
-                                    int fX = tile.X + aX;
-                                    int fY = tile.Y + aY;
-
-                                    if (!this.IsValidTile(states, fX, fY))
-                                        continue;
-
-                                    bool isContained = checkedTiles[fX, fY];
-                                    if (isContained)
-                                        continue;
-
-                                    if (states[fX, fY] == this.PathState)
-                                    {
-                                        checkedTiles[fX, fY] = true;
-                                        add.Add(new Int2(fX, fY));
-                                    }
-                                }
-                            }
-                        }
-
-                        area.Value.Clear();
-                        area.Value.AddRange(add);
-                        area.Key.Tiles.AddRange(add);
+                        toCheckTiles.Enqueue(new Int2(x, y));
                     }
-                } while (fillSuccess);
 
-                // Create Border Tiles
-                foreach (var area in toReturn)
-                {
-                    List<Int2> borderTiles = new List<Int2>();
-
-                    foreach (var tile in area.Tiles)
+                    while (toCheckTiles.Count > 0)
                     {
-                        bool next = false;
+                        Int2 tile = toCheckTiles.Dequeue();
+                        checkedTiles[tile.X, tile.Y] = true;
+
+                        activeAreaTiles.Add(tile);
+
                         for (int aY = -1; aY <= 1; aY++)
                         {
                             for (int aX = -1; aX <= 1; aX++)
@@ -647,47 +651,130 @@ namespace AreaGeneration
                                 int fX = tile.X + aX;
                                 int fY = tile.Y + aY;
 
-                                if (!this.IsValidTile(states, fX, fY))
+                                if (!AreaGenerator2DHelper.IsValidTile(states, fX, fY))
+                                {
+                                    continue;
+                                }
+
+                                if (checkedTiles[fX, fY])
                                     continue;
 
-                                if (states[fX, fY] != this.PathState)
+                                if (AreaGenerator2DHelper.RadiusCheck(states, fX, fY, radius, state))
                                 {
-                                    borderTiles.Add(tile);
-                                    next = true;
-                                    break;
+                                    toCheckTiles.Enqueue(new Int2(fX, fY));
+                                    checkedTiles[fX, fY] = true;
+                                }
+                                else
+                                {
+                                    // Border Tile...?
                                 }
                             }
-
-                            if (next)
-                                break;
                         }
                     }
 
-                    area.Borders.AddRange(borderTiles);
-                }
+                    if (activeAreaTiles.Count > 0)
+                    {
+                        Area area = new Area(activeAreaTiles);
+                        toReturn.Add(area);
+                        floodFill.Add(area, new List<Int2>(area.Tiles));
 
-                return toReturn;
+                        activeAreaTiles = new List<Int2>();
+                        //foreach (var tile in activeTiles)
+                        //{
+                        //    states[tile.X, tile.Y] = this.TargetState;
+                        //}
+
+                        //activeTiles.Clear();
+                        //toCheckTiles.Clear();
+                    }
+                }
             }
 
-            bool RadiusCheck(int[,] states, int stateX, int stateY)
+            // Flood Fill
+            bool fillSuccess = false;
+
+            do
             {
-                for (int rX = -this.PathRadius; rX <= this.PathRadius; rX++)
+                fillSuccess = false;
+                foreach (var area in floodFill)
                 {
-                    for (int rY = -this.PathRadius; rY <= this.PathRadius; rY++)
+                    List<Int2> add = new List<Int2>();
+
+                    fillSuccess |= fillSuccess || area.Value.Count > 0;
+
+                    foreach (var tile in area.Value)
                     {
-                        int fX = stateX + rX;
-                        int fY = stateY + rY;
+                        for (int aY = -1; aY <= 1; aY++)
+                        {
+                            for (int aX = -1; aX <= 1; aX++)
+                            {
+                                if (aX == 0 && aY == 0)
+                                    continue;
 
-                        if (!this.IsValidTile(states, fX, fY))
-                            continue;
+                                int fX = tile.X + aX;
+                                int fY = tile.Y + aY;
 
-                        if (states[fX, fY] != this.PathState)
-                            return false;
+                                if (!AreaGenerator2DHelper.IsValidTile(states, fX, fY))
+                                    continue;
+
+                                bool isContained = checkedTiles[fX, fY];
+                                if (isContained)
+                                    continue;
+
+                                if (states[fX, fY] == state)
+                                {
+                                    checkedTiles[fX, fY] = true;
+                                    add.Add(new Int2(fX, fY));
+                                }
+                            }
+                        }
+                    }
+
+                    area.Value.Clear();
+                    area.Value.AddRange(add);
+                    area.Key.Tiles.AddRange(add);
+                }
+            } while (fillSuccess);
+
+            // Create Border Tiles
+            foreach (var area in toReturn)
+            {
+                List<Int2> borderTiles = new List<Int2>();
+
+                foreach (var tile in area.Tiles)
+                {
+                    bool next = false;
+                    for (int aY = -1; aY <= 1; aY++)
+                    {
+                        for (int aX = -1; aX <= 1; aX++)
+                        {
+                            if (aX == 0 && aY == 0)
+                                continue;
+
+                            int fX = tile.X + aX;
+                            int fY = tile.Y + aY;
+
+                            if (!AreaGenerator2DHelper.IsValidTile(states, fX, fY))
+                                continue;
+
+                            if (states[fX, fY] != state)
+                            {
+                                borderTiles.Add(tile);
+                                next = true;
+                                break;
+                            }
+                        }
+
+                        if (next)
+                            break;
                     }
                 }
 
-                return true;
+                area.Borders.AddRange(borderTiles);
             }
+
+            return toReturn;
+
         }
     }
 }

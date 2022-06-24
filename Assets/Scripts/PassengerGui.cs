@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,7 +7,7 @@ public class PassengerGui : MonoBehaviour
 
     public void SetPassenger(bool hasPassenger)
     {
-        Passenger.gameObject.SetActive(hasPassenger);
-        NoPassenger.gameObject.SetActive(!hasPassenger);
+        this.Passenger.gameObject.SetActive(hasPassenger);
+        this.NoPassenger.gameObject.SetActive(!hasPassenger);
     }
 }

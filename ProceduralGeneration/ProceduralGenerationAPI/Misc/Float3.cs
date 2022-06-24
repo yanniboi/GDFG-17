@@ -11,11 +11,11 @@
             set
             {
                 if (idx == 0)
-                    X = value;
+                    this.X = value;
                 else if (idx == 1)
-                    Y = value;
+                    this.Y = value;
                 else if (idx == 2)
-                    Z = value;
+                    this.Z = value;
 
             }
         }

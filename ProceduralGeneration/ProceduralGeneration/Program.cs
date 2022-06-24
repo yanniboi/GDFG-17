@@ -1,6 +1,6 @@
-﻿using Misc;
+﻿using AreaGeneration;
+using Misc;
 using Noise;
-using AreaGeneration;
 using System;
 using System.Drawing;
 
@@ -35,9 +35,9 @@ namespace ProcCGen
             {
                 AreaGenerator2D generator = new AreaGenerator2D(seed);
 
-                int width = 5, height = 5, tilesX = 50, tilesY = 30;
+                int width = 4, height = 3, tilesX = 50, tilesY = 30;
 
-                AreaGenerator2D.AreaConfig config = new AreaGenerator2D.AreaConfig(5, 5, 50, 30)
+                AreaGenerator2D.AreaConfig config = new AreaGenerator2D.AreaConfig(width, height, tilesX, tilesY, 1, 0)
                     .Set(
                     new AreaGenerator2D.TileRule(-10, .2f, .5f, 0),
                     new AreaGenerator2D.TileRule(.1f, 10f, .5f, 1))
@@ -47,27 +47,71 @@ namespace ProcCGen
                                                                     // new AreaGenerator2D.AreaBorderRule(20, 5, 8, 1), // Create Ring
                     new AreaGenerator2D.AreaFillRule(0, 40, 0, 1),  // Convert small holes into walls
                     new AreaGenerator2D.AreaFillRule(0, 40, 1, 0), // Convert small walls into emptiness
-                    new AreaGenerator2D.AreaConnector(1, 0) // Make Sure... everything is connected
+                    new AreaGenerator2D.AreaConnector() // Make Sure... everything is connected
                     );
 
-                int[,] states = generator.Generate(config);
+                generator.Generate(config, out int[,][,] chunks, out int[,] states);
+
+                for (int cY = 0; cY < height; cY++)
+                {
+                    for (int cX = 0; cX < width; cX++)
+                    {
+                        for (int tY = 0; tY < tilesY; tY++)
+                        {
+                            for (int tX = 0; tX < tilesX; tX++)
+                            {
+                                if (chunks[cX, cY][tX, tY] == 1)
+                                {
+                                    int fX = cX * tilesX + tX;
+                                    int fY = cY * tilesY + tY;
+
+                                    if (chunks[cX, cY][tX, tY] != states[fX, fY])
+                                    {
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 int viewX = 0,
                     viewY = 0;
 
+                bool statesMode = true;
+
                 while (true)
                 {
                     string[] lines = new string[tilesY];
+
+                    int[,] viewStates = new int[tilesX, tilesY];
+
+                    if (statesMode)
+                    {
+                        for (int y = 0; y < tilesY; y++)
+                        {
+                            for (int x = 0; x < tilesX; x++)
+                            {
+                                int fX = viewX * tilesX + x;
+                                int fY = viewY * tilesY + y;
+
+                                viewStates[x,y] = states[fX, fY];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        viewStates = chunks[viewX, viewY];
+                    }
+
 
                     for (int y = 0; y < tilesY; y++)
                     {
                         string line = "";
                         for (int x = 0; x < tilesX; x++)
                         {
-                            int fX = viewX * tilesX + x;
-                            int fY = viewY * tilesY + y;
+                            int state = viewStates[x, y];
 
-                            int state = states[fX, fY];
                             if (state == 0)
                             {
                                 //line += (x % 5 == 0 || y % 5 == 0 ? "," : ".");
@@ -135,6 +179,10 @@ namespace ProcCGen
                     else if (key.Key == ConsoleKey.R)
                     {
                         break;
+                    }
+                    else if (key.Key == ConsoleKey.Spacebar)
+                    {
+                        statesMode = !statesMode;
                     }
                 }
 

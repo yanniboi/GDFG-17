@@ -5,7 +5,7 @@ public class LazerGun : MonoBehaviour
 {
     public static event Action<Vector3> OnHitTile;
     public static event Action OnNoHit;
-    
+
     public LineRenderer _line;
     public float lazerdistance;
     public LayerMask LayerMask;
@@ -15,50 +15,50 @@ public class LazerGun : MonoBehaviour
 
     void Update()
     {
-        GetTarget();
-        NotifyTiles();
-        ShootLazer();
+        this.GetTarget();
+        this.NotifyTiles();
+        this.ShootLazer();
     }
 
     private void GetTarget()
     {
         // Set to zero by default so we dont shoot unless we press a key.
-        _lazerTarget = Vector3.zero;
+        this._lazerTarget = Vector3.zero;
         if (Input.GetKey(KeyCode.Space))
         {
             // Take ship orientation into account
-            Vector2 direction = Vector2.right * gameObject.transform.parent.transform.localScale.x;
-            
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, lazerdistance, LayerMask);
+            Vector2 direction = Vector2.right * this.gameObject.transform.parent.transform.localScale.x;
+
+            RaycastHit2D hit = Physics2D.Raycast(this.transform.position, direction, this.lazerdistance, this.LayerMask);
             if (hit.collider != null)
             {
-                _lazerHitPoint = hit.point;
-                _lazerTarget = (hit.point) - (Vector2) transform.position;
+                this._lazerHitPoint = hit.point;
+                this._lazerTarget = (hit.point) - (Vector2)this.transform.position;
             }
             else
             {
-                _lazerHitPoint = default;
-                _lazerTarget = direction * lazerdistance;
+                this._lazerHitPoint = default;
+                this._lazerTarget = direction * this.lazerdistance;
             }
 
             // Debug
-            Debug.DrawRay(transform.position, direction*lazerdistance, Color.green);
+            Debug.DrawRay(this.transform.position, direction * this.lazerdistance, Color.green);
         }
         else if (Input.GetKeyUp(KeyCode.Space))
         {
-            _lazerHitPoint = default;
+            this._lazerHitPoint = default;
             OnNoHit?.Invoke();
         }
     }
-    
+
     private void NotifyTiles()
     {
-        if (_lazerHitPoint != default)
+        if (this._lazerHitPoint != default)
         {
-            Vector2 direction = Vector2.right * gameObject.transform.parent.transform.localScale.x;
+            Vector2 direction = Vector2.right * this.gameObject.transform.parent.transform.localScale.x;
             var tile = Vector3.zero;
-            tile.x = _lazerHitPoint.x + 0.01f * direction.x;
-            tile.y = _lazerHitPoint.y + 0.01f * direction.y;
+            tile.x = this._lazerHitPoint.x + 0.01f * direction.x;
+            tile.y = this._lazerHitPoint.y + 0.01f * direction.y;
             OnHitTile?.Invoke(tile);
         }
         else
@@ -70,8 +70,8 @@ public class LazerGun : MonoBehaviour
     private void ShootLazer()
     {
         // Line position is relative to the line origin and so should always be positive.
-        Vector3 linePosition = _lazerTarget * _lazerTarget.normalized.x;
-        _line.SetPosition(1, linePosition);
+        Vector3 linePosition = this._lazerTarget * this._lazerTarget.normalized.x;
+        this._line.SetPosition(1, linePosition);
     }
-    
+
 }
