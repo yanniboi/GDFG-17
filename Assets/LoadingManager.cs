@@ -28,6 +28,13 @@ public class LoadingManager : MonoBehaviour
         Application.backgroundLoadingPriority = ThreadPriority.High;
         SceneManager.LoadScene("LoadingScene");
     }
+    
+    public static void LoadSceneNow(string sceneToLoad)
+    {
+        SceneManager.LoadScene(sceneToLoad);
+    }
+    
+    
 
     private void Awake()
     {
@@ -41,23 +48,34 @@ public class LoadingManager : MonoBehaviour
             this.StartCoroutine(nameof(BuildLevelFromSeed));
         }
 
-        this.LoadingText.text = this._loadingTexts[Random.Range(0, this._loadingTexts.Count)];
+        this.LoadingText.text = this._loadingTexts[0];
     }
 
     private IEnumerator BuildLevelFromSeed()
     {
-        this._levelGenerator.Generate(_seed);
-
-        var state = this._levelGenerator.State;
-
-        while (!state.IsDone)
+        if (false)
         {
-            this._progress = (0f + state.ProgressCurrent) / state.ProgressMax * .5f;
+            this._levelGenerator.Generate(_seed);
 
-            yield return null;
+            var state = this._levelGenerator.State;
+
+            while (!state.IsDone)
+            {
+                this._progress = (0f + state.ProgressCurrent) / state.ProgressMax * .5f;
+
+                yield return null;
+            }
+
         }
+        this._progress = 0.1f;    
 
-        this._progress = 0.5f;
+        yield return new WaitForSeconds(2f);
+        this._progress = 0.2f;    
+
+        yield return new WaitForSeconds(3f);
+        this._progress = 0.6f;
+        yield return new WaitForSeconds(1f);
+
 
         this._asyncOperation = SceneManager.LoadSceneAsync(_sceneToLoad, LoadSceneMode.Single);
         this._asyncOperation.allowSceneActivation = false;

@@ -24,7 +24,7 @@ public class LazerGun : MonoBehaviour
     {
         // Set to zero by default so we dont shoot unless we press a key.
         this._lazerTarget = Vector3.zero;
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKey(KeyCode.LeftShift))
         {
             // Take ship orientation into account
             Vector2 direction = Vector2.right * this.gameObject.transform.parent.transform.localScale.x;
@@ -44,7 +44,7 @@ public class LazerGun : MonoBehaviour
             // Debug
             Debug.DrawRay(this.transform.position, direction * this.lazerdistance, Color.green);
         }
-        else if (Input.GetKeyUp(KeyCode.Space))
+        else if (Input.GetKeyUp(KeyCode.LeftShift))
         {
             this._lazerHitPoint = default;
             OnNoHit?.Invoke();
