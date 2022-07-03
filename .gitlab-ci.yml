@@ -92,16 +92,16 @@ image: $IMAGE:$UNITY_VERSION-base-$IMAGE_VERSION
   rules:
     - if: $CI_COMMIT_TAG
 
-#build-StandaloneLinux64:
-#  <<: *build
-#  variables:
-#    BUILD_TARGET: StandaloneLinux64
-#
-#build-StandaloneOSX:
-#  <<: *build
-#  image: $IMAGE:$UNITY_VERSION-mac-mono-$IMAGE_VERSION
-#  variables:
-#    BUILD_TARGET: StandaloneOSX
+build-StandaloneLinux64:
+  <<: *build
+  variables:
+    BUILD_TARGET: StandaloneLinux64
+
+build-StandaloneOSX:
+  <<: *build
+  image: $IMAGE:$UNITY_VERSION-mac-mono-$IMAGE_VERSION
+  variables:
+    BUILD_TARGET: StandaloneOSX
 
 build-StandaloneWindows64:
   <<: *build
@@ -163,13 +163,13 @@ build-WebGL:
 deploy-itch:
   <<: *deploy
   image: benjymous/docker-itch-butler
-#  needs: [ "build-WebGL", "build-StandaloneLinux64", "build-StandaloneOSX", "build-StandaloneWindows64" ]
-  needs: [ "build-WebGL", "build-StandaloneWindows64" ]
+  needs: [ "build-WebGL", "build-StandaloneLinux64", "build-StandaloneOSX", "build-StandaloneWindows64" ]
+#  needs: [ "build-WebGL", "build-StandaloneWindows64" ]
   script:
     - butler push $UNITY_DIR/Builds/WebGL $ITCHIO_NAME:web-stable
     - butler push $UNITY_DIR/Builds/StandaloneWindows64 $ITCHIO_NAME:windows-stable
-#    - butler push $UNITY_DIR/Builds/StandaloneLinux64 $ITCHIO_NAME:linux-stable
-#    - butler push $UNITY_DIR/Builds/StandaloneOSX $ITCHIO_NAME:macosx-stable
+    - butler push $UNITY_DIR/Builds/StandaloneLinux64 $ITCHIO_NAME:linux-stable
+    - butler push $UNITY_DIR/Builds/StandaloneOSX $ITCHIO_NAME:macosx-stable
 
 #deploy-android:
 #  <<: *deploy

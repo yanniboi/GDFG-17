@@ -9,6 +9,7 @@ public class StartScreen : MonoBehaviour
 
     public void PressButton()
     {
-        LoadingManager.LoadScene("LevelGeneration", this.Seed);
+        // LoadingManager.LoadScene("LevelGeneration", this.Seed);
+        LoadingManager.LoadScene("Level", this.Seed);
     }
 }
